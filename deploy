@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o xtrace
+
+readonly TARGET_HOST=pi@pi.local  # Change this to your Raspberry Pi's IP
+readonly PI_PROJECT_FOLDER=rust-raspberry-pi # Create this folder on your Raspberry Pi
+readonly TARGET_PATH=/home/pi/${PI_PROJECT_FOLDER}
+readonly TARGET_ARCH=arm-unknown-linux-gnueabihf # Change this to your Raspberry Pi's architecture
+readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/rust-raspberry-pi
+readonly SSH_KEY=~/.ssh/raspberrypi # Change this to your SSH key
+readonly RUN_CMD=./${PI_PROJECT_FOLDER}/rust-raspberry-pi
+
+cross build --release --target=${TARGET_ARCH}
+# If using default SSH key or using a password, remove the -Pav and -e "..." options
+rsync -Pav -e "ssh -i $SSH_KEY" ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}
+ssh -i ${SSH_KEY} -t ${TARGET_HOST} ${RUN_CMD}
